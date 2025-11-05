@@ -125,10 +125,27 @@ curl -X POST https://your-domain.vercel.app/webhook/teamtailor \
 - Varmista organization permissions
 - Tarkista API rate limits
 
-### Facebook Issues  
+### Facebook Issues
 - Varmista page permissions
 - Tarkista access token tyyppi (page vs user)
 - Tarkista app review status
+
+**🔥 YLEINEN ONGELMA: Facebook App Integration Stuck**
+Jos Facebook API ei toimi vaikka kaikki näyttää olevan kunnossa:
+
+1. Mene Facebook asetuksiin:
+   - https://www.facebook.com/settings?tab=business_tools
+   - TAI: Settings & Privacy → Settings → Business Integrations
+
+2. Etsi sovelluksesi (esim. "Wippiiwork Social Agent")
+
+3. Klikkaa **"Remove"** poistaaksesi sovelluksen
+
+4. Käy uudelleen Facebook Developers consolessa ja anna permissions uudelleen
+
+5. Hanki uusi access token
+
+**Ratkaisu löytyi kun token:** `EAAMEHBb0USQBP1R99HmMTe6TNlFP4yHYWHTeRZCW5A0fPLDj3Yr5RJeyrXpb3APyMEbjOni5YWBTMgeqVg8TXXnzg0D05cBIsU0R78YnZCZCUZC9YkkxlItNEhFPTt2xIqvZA02LKxkFcTtbTI8nj7hJYuCwkcZBPKMvrWsggCv34qJOqyNuMtN2lyMbkxsvJ4RuWvBBUVon0wxrX6P38IBG8uE73pjNgs4BKqPcyPN1qqAqEn56iDePNHa1PsvfI2YjkE0fSgyaq7bFze788lgZDZD` alkoi toimimaan.
 
 ### Webhook Issues
 - Tarkista signature validation
