@@ -73,7 +73,13 @@ src/
 
 ## 🚀 Deployment
 
-### Vercel
+### Vercel (Auto-deployment from GitHub)
+Projekti on konfiguroitu automaattiseen deploymentiin:
+- **GitHub Repository**: https://github.com/Coupdag/teamtailor-social-agent
+- **Production URL**: https://teamtailor-social-agent.vercel.app
+- **Auto-deploy**: Jokainen push `main` branchiin käynnistää automaattisen deploymentin
+
+### Manuaalinen deployment
 ```bash
 npm run build
 vercel --prod
