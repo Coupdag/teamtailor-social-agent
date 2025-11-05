@@ -1,0 +1,51 @@
+{
+  "name": "teamtailor-social-agent",
+  "version": "1.0.0",
+  "description": "Automaattinen agentti joka postaa TeamTailor työpaikat LinkedIn ja Facebook -profiileihin",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+    "build": "tsc",
+    "vercel-build": "tsc && mkdir -p public && echo 'TeamTailor Social Agent' > public/index.html",
+    "start": "node dist/app.js",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
+  },
+  "keywords": [
+    "teamtailor",
+    "linkedin",
+    "facebook",
+    "webhook",
+    "automation",
+    "social-media"
+  ],
+  "author": "Wippiiwork",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "dotenv": "^16.3.1",
+    "axios": "^1.6.2",
+    "openai": "^4.20.1",
+    "node-cron": "^3.0.3",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/node": "^20.10.4",
+    "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "eslint": "^8.55.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
