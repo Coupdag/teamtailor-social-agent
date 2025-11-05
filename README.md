@@ -2,6 +2,8 @@
 
 Automaattinen agentti joka kuuntelee TeamTailor webhookeja ja postaa uudet työpaikat automaattisesti LinkedIn ja Facebook -profiileihin.
 
+🚀 **Auto-deployment enabled** - Pushes to main branch automatically deploy to production!
+
 ## 🚀 Ominaisuudet
 
 - **TeamTailor Webhook Integration**: Kuuntelee uusia työpaikkoja TeamTailorista
