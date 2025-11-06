@@ -60,11 +60,9 @@ app.get('/health', (req, res) => {
 // TeamTailor webhook endpoint
 app.post('/webhook/teamtailor', webhookHandler);
 
-// Test endpoints (only in development)
-if (config.nodeEnv === 'development') {
-  app.get('/test/connections', testConnections);
-  app.post('/test/job-posting', testJobPosting);
-}
+// Test endpoints (available in all environments for debugging)
+app.get('/test/connections', testConnections);
+app.post('/test/job-posting', testJobPosting);
 
 // 404 handler
 app.use('*', (req, res) => {
