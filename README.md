@@ -2,6 +2,41 @@
 
 Automaattinen agentti joka kuuntelee TeamTailor webhookeja ja postaa uudet työpaikat automaattisesti LinkedIn ja Facebook -profiileihin.
 
+## 🧪 TESTING MODE - TÄRKEÄÄ!
+
+**HUOM:** Tämä on testiympäristö! LinkedIn ja Facebook postaukset on POISTETTU KÄYTÖSTÄ turvallisuussyistä.
+
+### Nykyinen tila:
+- ✅ **Google Chat** - KÄYTÖSSÄ (testikanava)
+- ❌ **LinkedIn** - POISTETTU KÄYTÖSTÄ (testikäytön ajaksi)
+- ❌ **Facebook** - POISTETTU KÄYTÖSTÄ (testikäytön ajaksi)
+
+### Kuinka palauttaa LinkedIn ja Facebook käyttöön:
+
+1. **Avaa tiedosto:** `src/services/jobProcessor.ts`
+2. **Etsi rivi ~78:** `// DISABLED FOR TESTING - LinkedIn posting`
+3. **Poista kommentit** LinkedIn ja Facebook postausten edestä:
+
+```javascript
+// MUUTA TÄMÄ:
+// postToLinkedIn({
+//   platform: 'linkedin',
+//   content: linkedInText,
+//   jobUrl,
+// }),
+
+// TAKAISIN TÄHÄN:
+postToLinkedIn({
+  platform: 'linkedin',
+  content: linkedInText,
+  jobUrl,
+}),
+```
+
+4. **Tee sama Facebook-postaukselle**
+5. **Päivitä platform-loggaus** (rivi ~120): `const platforms = ['LinkedIn', 'Facebook', 'Google Chat'];`
+6. **Päivitä console.log** (rivi ~76): `About to post to LinkedIn and Facebook`
+
 🚀 **Auto-deployment enabled** - Pushes to main branch automatically deploy to production!
 
 ## 🚀 Ominaisuudet

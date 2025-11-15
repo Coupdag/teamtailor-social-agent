@@ -73,25 +73,27 @@ export async function processJobPosting(job: TeamTailorJob): Promise<void> {
 
     // Post to social media platforms in parallel
     logger.info('About to post to social media platforms', { jobId: job.id });
-    console.log(`🚀 CONSOLE: About to post to LinkedIn and Facebook for job ${job.id}`);
+    console.log(`🧪 CONSOLE: TESTING MODE - Only posting to Google Chat for job ${job.id}`);
 
+    // 🚨 TESTING MODE: LinkedIn and Facebook DISABLED for safety
+    // 📝 TO RE-ENABLE: Uncomment LinkedIn and Facebook lines below
     const postingPromises = [
-      postToLinkedIn({
-        platform: 'linkedin',
-        content: linkedInText,
-        jobUrl,
-      }),
-      postToFacebook({
-        platform: 'facebook',
-        content: facebookText,
-        jobUrl,
-      }),
-      // Send to Google Chat (convert job to webhook format)
-      sendJobToGoogleChat({
-        event: 'job.created',
-        data: job,
-        timestamp: new Date().toISOString()
-      }),
+      // DISABLED FOR TESTING - LinkedIn posting
+      // postToLinkedIn({
+      //   platform: 'linkedin',
+      //   content: linkedInText,
+      //   jobUrl,
+      // }),
+
+      // DISABLED FOR TESTING - Facebook posting
+      // postToFacebook({
+      //   platform: 'facebook',
+      //   content: facebookText,
+      //   jobUrl,
+      // }),
+
+      // ✅ ENABLED: Google Chat (test environment only)
+      sendJobToGoogleChat(job, linkedInText, jobUrl),
     ];
 
     logger.info('Posting promises created, calling Promise.allSettled', {
@@ -114,7 +116,8 @@ export async function processJobPosting(job: TeamTailorJob): Promise<void> {
 
     // Log results
     results.forEach((result, index) => {
-      const platforms = ['LinkedIn', 'Facebook', 'Google Chat'];
+      // 🧪 TESTING MODE: Only Google Chat enabled
+      const platforms = ['Google Chat']; // LinkedIn and Facebook disabled for testing
       const platform = platforms[index] || `Platform ${index}`;
       
       if (result.status === 'fulfilled') {

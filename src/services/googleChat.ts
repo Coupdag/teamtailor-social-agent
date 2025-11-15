@@ -4,19 +4,16 @@ import logger from '../utils/logger';
 import { TeamTailorWebhookPayload } from '../types';
 
 /**
- * Format job posting for Google Chat
+ * Format job posting for Google Chat with generated content
  */
-function formatJobForGoogleChat(webhook: TeamTailorWebhookPayload): any {
-  const job = webhook.data;
-  const jobUrl = `https://rekry.wippiiwork.com/jobs/${job.id}`;
-
+function formatJobForGoogleChat(job: any, generatedText: string, jobUrl: string): any {
   return {
     text: `🎯 Uusi työpaikka julkaistu!`,
     cards: [
       {
         header: {
           title: job.title || 'Uusi työpaikka',
-          subtitle: job.department?.name || 'Wippii Work',
+          subtitle: job.company?.name || 'Wippii Work',
           imageUrl: 'https://wippiiwork.com/favicon.ico'
         },
         sections: [
@@ -24,9 +21,7 @@ function formatJobForGoogleChat(webhook: TeamTailorWebhookPayload): any {
             widgets: [
               {
                 textParagraph: {
-                  text: `<b>Sijainti:</b> ${job.location?.name || 'Ei määritelty'}<br>` +
-                        `<b>Työsuhde:</b> ${job.employment_type || 'Ei määritelty'}<br>` +
-                        `<b>Tila:</b> ${job.status || 'Ei määritelty'}`
+                  text: generatedText
                 }
               },
               {
@@ -52,21 +47,21 @@ function formatJobForGoogleChat(webhook: TeamTailorWebhookPayload): any {
 }
 
 /**
- * Send job posting to Google Chat
+ * Send job posting to Google Chat with generated content
  */
-export async function sendJobToGoogleChat(webhook: TeamTailorWebhookPayload): Promise<boolean> {
+export async function sendJobToGoogleChat(job: any, generatedText: string, jobUrl: string): Promise<boolean> {
   try {
     if (!config.googleChat.webhookUrl) {
       logger.warn('Google Chat webhook URL not configured');
       return false;
     }
 
-    const message = formatJobForGoogleChat(webhook);
-    const job = webhook.data;
+    const message = formatJobForGoogleChat(job, generatedText, jobUrl);
 
     logger.info('Sending job to Google Chat', {
       jobId: job.id,
       jobTitle: job.title,
+      generatedTextLength: generatedText.length,
       webhookUrl: config.googleChat.webhookUrl.substring(0, 50) + '...'
     });
 
@@ -94,7 +89,6 @@ export async function sendJobToGoogleChat(webhook: TeamTailorWebhookPayload): Pr
     }
 
   } catch (error: any) {
-    const job = webhook.data;
     logger.error('Error sending job to Google Chat', {
       jobId: job.id,
       error: error.message,
