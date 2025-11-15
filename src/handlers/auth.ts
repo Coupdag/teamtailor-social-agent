@@ -71,19 +71,21 @@ export async function linkedinCallback(req: Request, res: Response): Promise<voi
     // Check for OAuth errors
     if (oauthError) {
       logger.error('LinkedIn OAuth error', { error: oauthError });
-      return res.status(400).json({
+      res.status(400).json({
         error: 'LinkedIn OAuth failed',
         details: oauthError,
       });
+      return;
     }
 
     // Validate required parameters
     if (!code || !state) {
       logger.error('Missing OAuth parameters', { hasCode: !!code, hasState: !!state });
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing OAuth parameters',
         message: 'Authorization code or state parameter missing',
       });
+      return;
     }
 
     // TODO: Validate state parameter (session check)
@@ -111,13 +113,19 @@ export async function linkedinCallback(req: Request, res: Response): Promise<voi
         status: tokenResponse.status,
         error: errorText,
       });
-      return res.status(500).json({
+      res.status(500).json({
         error: 'Failed to exchange authorization code for access token',
         details: errorText,
       });
+      return;
     }
 
-    const tokenData = await tokenResponse.json();
+    const tokenData = await tokenResponse.json() as {
+      access_token: string;
+      token_type: string;
+      expires_in: number;
+      scope: string;
+    };
     logger.info('LinkedIn access token received', {
       tokenType: tokenData.token_type,
       expiresIn: tokenData.expires_in,

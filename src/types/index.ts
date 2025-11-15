@@ -74,6 +74,9 @@ export interface Config {
   teamtailor: {
     webhookSecret: string;
   };
+  googleChat: {
+    webhookUrl: string | undefined;
+  };
   linkedin: {
     clientId: string;
     clientSecret: string;

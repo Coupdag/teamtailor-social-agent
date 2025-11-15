@@ -4,6 +4,7 @@ import config from '../utils/config';
 import { generateSocialMediaText } from './textGenerator';
 import { postToLinkedIn } from '../handlers/linkedin';
 import { postToFacebook } from '../handlers/facebook';
+import { sendJobToGoogleChat } from './googleChat';
 
 /**
  * Process a job posting for social media
@@ -85,6 +86,12 @@ export async function processJobPosting(job: TeamTailorJob): Promise<void> {
         content: facebookText,
         jobUrl,
       }),
+      // Send to Google Chat (convert job to webhook format)
+      sendJobToGoogleChat({
+        event: 'job.created',
+        data: job,
+        timestamp: new Date().toISOString()
+      }),
     ];
 
     logger.info('Posting promises created, calling Promise.allSettled', {
@@ -107,7 +114,8 @@ export async function processJobPosting(job: TeamTailorJob): Promise<void> {
 
     // Log results
     results.forEach((result, index) => {
-      const platform = index === 0 ? 'LinkedIn' : 'Facebook';
+      const platforms = ['LinkedIn', 'Facebook', 'Google Chat'];
+      const platform = platforms[index] || `Platform ${index}`;
       
       if (result.status === 'fulfilled') {
         logger.info(`Successfully posted to ${platform}`, {

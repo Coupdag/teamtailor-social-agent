@@ -43,6 +43,10 @@ export const config: Config = {
     webhookSecret: process.env.TEAMTAILOR_WEBHOOK_SECRET || 'placeholder',
   },
 
+  googleChat: {
+    webhookUrl: process.env.GOOGLE_CHAT_WEBHOOK_URL || undefined,
+  },
+
   linkedin: {
     clientId: process.env.LINKEDIN_CLIENT_ID || 'placeholder',
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET || 'placeholder',
