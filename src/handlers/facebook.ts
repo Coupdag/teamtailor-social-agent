@@ -31,7 +31,7 @@ export async function postToFacebook(post: SocialMediaPost): Promise<any> {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 second timeout
+        timeout: 8000, // 8 second timeout (under Vercel limit)
       }
     );
 

@@ -15,38 +15,38 @@ export async function postToLinkedIn(post: SocialMediaPost): Promise<any> {
       jobUrl: post.jobUrl,
     });
 
-    // Create LinkedIn post payload
-    const linkedInPost: LinkedInPost = {
+    // Debug: Log the exact content and URL being used
+    logger.info('LinkedIn post debug', {
+      originalContent: post.content,
+      jobUrl: post.jobUrl,
+      contentLength: post.content.length,
+      containsUrl: post.content.includes('http'),
+    });
+
+    // Create LinkedIn post payload (organization post)
+    const finalCommentary = `${post.content}\n\nHae työpaikkaa: ${post.jobUrl}`;
+
+    const linkedInPost = {
       author: `urn:li:organization:${config.linkedin.organizationId}`,
+      commentary: finalCommentary,
+      visibility: 'PUBLIC',
+      distribution: {
+        feedDistribution: 'MAIN_FEED',
+        targetEntities: [],
+        thirdPartyDistributionChannels: []
+      },
       lifecycleState: 'PUBLISHED',
-      specificContent: {
-        'com.linkedin.ugc.ShareContent': {
-          shareCommentary: {
-            text: post.content,
-          },
-          shareMediaCategory: 'ARTICLE',
-          media: [
-            {
-              status: 'READY',
-              description: {
-                text: 'Katso työpaikkailmoitus Wippiiwork.com sivustolta',
-              },
-              media: post.jobUrl,
-              title: {
-                text: 'Uusi työmahdollisuus - Wippiiwork',
-              },
-            },
-          ],
-        },
-      },
-      visibility: {
-        'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
-      },
+      isReshareDisabledByAuthor: false
     };
 
-    // Make API request to LinkedIn
+    logger.info('Final LinkedIn payload', {
+      commentaryLength: finalCommentary.length,
+      commentaryPreview: finalCommentary.substring(0, 200) + '...',
+    });
+
+    // Make API request to LinkedIn (new API endpoint)
     const response = await axios.post(
-      `${LINKEDIN_API_BASE}/ugcPosts`,
+      `${LINKEDIN_API_BASE}/posts`,
       linkedInPost,
       {
         headers: {
@@ -54,7 +54,7 @@ export async function postToLinkedIn(post: SocialMediaPost): Promise<any> {
           'Content-Type': 'application/json',
           'X-Restli-Protocol-Version': '2.0.0',
         },
-        timeout: 30000, // 30 second timeout
+        timeout: 8000, // 8 second timeout (under Vercel limit)
       }
     );
 
@@ -89,12 +89,12 @@ export async function postToLinkedIn(post: SocialMediaPost): Promise<any> {
 }
 
 /**
- * Validate LinkedIn access token
+ * Validate LinkedIn access token by checking organization access
  */
 export async function validateLinkedInToken(): Promise<boolean> {
   try {
     const response = await axios.get(
-      `${LINKEDIN_API_BASE}/me`,
+      `${LINKEDIN_API_BASE}/organizations/${config.linkedin.organizationId}`,
       {
         headers: {
           'Authorization': `Bearer ${config.linkedin.accessToken}`,
@@ -105,6 +105,8 @@ export async function validateLinkedInToken(): Promise<boolean> {
 
     logger.info('LinkedIn token validation successful', {
       status: response.status,
+      organizationId: config.linkedin.organizationId,
+      organizationName: response.data.localizedName,
     });
 
     return true;
@@ -113,6 +115,7 @@ export async function validateLinkedInToken(): Promise<boolean> {
     logger.error('LinkedIn token validation failed', {
       error: error instanceof Error ? error.message : 'Unknown error',
       status: axios.isAxiosError(error) ? error.response?.status : undefined,
+      organizationId: config.linkedin.organizationId,
     });
 
     return false;

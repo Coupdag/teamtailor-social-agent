@@ -11,38 +11,118 @@ const openai = new OpenAI({
  * Generate social media text for a job posting
  */
 export async function generateSocialMediaText(
-  job: TeamTailorJob, 
+  job: TeamTailorJob,
   platform: 'linkedin' | 'facebook'
 ): Promise<string> {
+  const startTime = Date.now();
+
   try {
-    const prompt = createPrompt(job, platform);
-    
-    logger.info('Generating social media text', {
+    logger.info('Starting generateSocialMediaText', {
       jobId: job.id,
       platform,
       jobTitle: job.title,
       company: job.company.name,
     });
 
-    const response = await openai.chat.completions.create({
+    logger.info('Creating prompt', { jobId: job.id, platform });
+    const prompt = createPrompt(job, platform);
+    logger.info('Prompt created', {
+      jobId: job.id,
+      platform,
+      promptLength: prompt.length,
+      promptPreview: prompt.substring(0, 200) + '...'
+    });
+
+    logger.info('About to call OpenAI API', {
+      jobId: job.id,
+      platform,
       model: config.openai.model,
-      messages: [
-        {
-          role: 'system',
-          content: getSystemPrompt(platform),
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      max_tokens: platform === 'linkedin' ? 1000 : 800,
-      temperature: 0.7,
+    });
+
+    console.log(`🔑 CONSOLE: OpenAI API key exists: ${!!config.openai.apiKey}`);
+    console.log(`🔑 CONSOLE: OpenAI API key length: ${config.openai.apiKey?.length || 0}`);
+    console.log(`🔑 CONSOLE: OpenAI API key prefix: ${config.openai.apiKey?.substring(0, 10) || 'none'}...`);
+
+    // Create OpenAI request with timeout
+    console.log(`🚀 CONSOLE: Creating OpenAI request for job ${job.id}`);
+
+    let openaiRequest;
+    try {
+      openaiRequest = openai.chat.completions.create({
+        model: config.openai.model,
+        messages: [
+          {
+            role: 'system',
+            content: getSystemPrompt(platform),
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        max_tokens: platform === 'linkedin' ? 1000 : 800,
+        temperature: 0.7,
+      });
+      console.log(`✅ CONSOLE: OpenAI request created successfully for job ${job.id}`);
+    } catch (error) {
+      console.log(`❌ CONSOLE: Failed to create OpenAI request for job ${job.id}:`, error);
+      throw error;
+    }
+
+    // Add aggressive timeout tracking with heartbeat (15s for Pro plan)
+    const timeoutPromise = new Promise((_, reject) => {
+      // Heartbeat every 2 seconds
+      const heartbeat = setInterval(() => {
+        console.log(`💓 CONSOLE: OpenAI API still waiting... (job ${job.id}, platform ${platform})`);
+      }, 2000);
+
+      setTimeout(() => {
+        clearInterval(heartbeat);
+        console.log(`⏰ CONSOLE: OpenAI API TIMEOUT after 15s (job ${job.id}, platform ${platform})`);
+        logger.error('OpenAI API timeout', {
+          jobId: job.id,
+          platform,
+          timeoutSeconds: 15,
+        });
+        reject(new Error('OpenAI API timeout after 15 seconds'));
+      }, 15000);
+    });
+
+    logger.info('Racing OpenAI API call against timeout', {
+      jobId: job.id,
+      platform,
+      timeoutSeconds: 15,
+    });
+
+    console.log(`🚀 CONSOLE: Starting OpenAI API race for job ${job.id} platform ${platform}`);
+
+    console.log(`⏳ CONSOLE: Starting Promise.race for job ${job.id}...`);
+
+    const response = await Promise.race([openaiRequest, timeoutPromise]) as any;
+    console.log(`🏁 CONSOLE: Promise.race completed for job ${job.id}`);
+    console.log(`✅ CONSOLE: OpenAI API completed for job ${job.id}`, {
+      responseId: response?.id,
+      model: response?.model,
+      usage: response?.usage
+    });
+
+    logger.info('OpenAI API call completed', {
+      jobId: job.id,
+      platform,
+      elapsedMs: Date.now() - startTime,
+      responseId: response.id,
+      model: response.model,
+      usage: response.usage,
     });
 
     const generatedText = response.choices[0]?.message?.content?.trim();
 
     if (!generatedText) {
+      logger.error('No text generated from OpenAI', {
+        jobId: job.id,
+        platform,
+        response: JSON.stringify(response, null, 2),
+      });
       throw new Error('No text generated from OpenAI');
     }
 
@@ -50,19 +130,45 @@ export async function generateSocialMediaText(
       jobId: job.id,
       platform,
       textLength: generatedText.length,
+      textPreview: generatedText.substring(0, 100) + '...',
+      elapsedMs: Date.now() - startTime,
     });
 
     return generatedText;
 
   } catch (error) {
+    const isTimeout = error instanceof Error && error.message.includes('timeout');
+
     logger.error('Failed to generate social media text', {
       jobId: job.id,
       platform,
       error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      errorType: typeof error,
+      errorName: error instanceof Error ? error.name : 'Unknown',
+      elapsedMs: Date.now() - startTime,
+      isTimeout,
+      fullError: JSON.stringify(error, null, 2),
     });
-    
+
+    logger.info('Using fallback text generation due to OpenAI failure', {
+      jobId: job.id,
+      platform,
+      reason: isTimeout ? 'timeout' : 'api_error'
+    });
+
     // Fallback to template-based text
-    return generateFallbackText(job, platform);
+    const fallbackText = generateFallbackText(job, platform);
+
+    logger.info('Fallback text generated successfully', {
+      jobId: job.id,
+      platform,
+      textLength: fallbackText.length,
+      textPreview: fallbackText.substring(0, 100) + '...',
+      elapsedMs: Date.now() - startTime,
+    });
+
+    return fallbackText;
   }
 }
 
@@ -93,7 +199,7 @@ Postauksen tulee:
 - Sisältää call-to-action
 - Korostaa Wippiiwork-brändiä työnvälittäjänä
 
-Älä sisällytä linkkiä - se lisätään automaattisesti.
+TÄRKEÄÄ: ÄLÄ sisällytä mitään URL-linkkejä tai web-osoitteita tekstiin. Linkki lisätään automaattisesti.
   `.trim();
 }
 
@@ -151,10 +257,10 @@ Muoto aina: [Asiakasyritys] etsii [rooli] – hae nyt!
 - Paikallinen: "Työpaikka sijaitsee lähellä ja ympärillä on tuttu porukka"
 
 🟢 CTA-lopetuslauseet:
-- 👉 Katso tarkemmat tiedot ja hae: [linkki]
 - ⚡ Paikka täytetään heti sopivan löydyttyä – toimi nopeasti!
-- 💼 Lue lisää tehtävästä ja hae heti: [linkki]
 - 🧭 Jätä hakemus helposti verkossa – aloitetaan keskustelu!
+- 💼 Hae työpaikkaa nyt – aloitetaan keskustelu!
+- 👉 Kiinnostuitko? Ota yhteyttä ja keskustellaan lisää!
 
 🧭 TYYLIOHJEET:
 - Tiivis, ihmisläheinen, positiivinen, paikallinen, helposti lähestyttävä

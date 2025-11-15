@@ -5,6 +5,7 @@ import config from './utils/config';
 import logger from './utils/logger';
 import { webhookHandler } from './handlers/webhook';
 import { testConnections, testJobPosting } from './handlers/test';
+import { linkedinAuth, linkedinCallback } from './handlers/auth';
 
 const app = express();
 
@@ -15,7 +16,8 @@ app.use(cors({
   credentials: true,
 }));
 
-// Body parsing middleware
+// Body parsing middleware with raw body capture for webhook signature verification
+app.use('/webhook/teamtailor', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -60,9 +62,24 @@ app.get('/health', (req, res) => {
 // TeamTailor webhook endpoint
 app.post('/webhook/teamtailor', webhookHandler);
 
+// LinkedIn OAuth endpoints
+app.get('/auth/linkedin', linkedinAuth);
+app.get('/auth/callback', linkedinCallback);
+
 // Test endpoints (available in all environments for debugging)
 app.get('/test/connections', testConnections);
 app.post('/test/job-posting', testJobPosting);
+
+// Debug endpoint to check webhook secret (temporary)
+app.get('/debug/webhook-secret', (req, res) => {
+  const secret = config.teamtailor.webhookSecret;
+  res.json({
+    secretLength: secret.length,
+    secretPreview: secret.substring(0, 10) + '...',
+    isPlaceholder: secret === 'placeholder',
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // 404 handler
 app.use('*', (req, res) => {

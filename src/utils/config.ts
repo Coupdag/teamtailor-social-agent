@@ -35,8 +35,9 @@ if (missingVars.length > 0 && process.env.VERCEL) {
 }
 
 export const config: Config = {
-  port: parseInt(process.env.PORT || '3000', 10),
+  port: parseInt(process.env.PORT || '3005', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
+  baseUrl: process.env.BASE_URL || 'https://georgann-unverbal-nonphonetically.ngrok-free.dev',
 
   teamtailor: {
     webhookSecret: process.env.TEAMTAILOR_WEBHOOK_SECRET || 'placeholder',

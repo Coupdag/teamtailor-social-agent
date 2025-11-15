@@ -41,29 +41,23 @@ export interface SocialMediaPost {
 }
 
 export interface LinkedInPost {
-  author: string; // Organization URN
-  lifecycleState: 'PUBLISHED';
-  specificContent: {
-    'com.linkedin.ugc.ShareContent': {
-      shareCommentary: {
-        text: string;
-      };
-      shareMediaCategory: 'NONE' | 'ARTICLE' | 'IMAGE';
-      media?: Array<{
-        status: 'READY';
-        description: {
-          text: string;
-        };
-        media: string;
-        title: {
-          text: string;
-        };
-      }>;
+  author: string; // Organization URN (urn:li:organization:123456)
+  commentary: string;
+  visibility: 'PUBLIC';
+  distribution: {
+    feedDistribution: 'MAIN_FEED';
+    targetEntities: any[];
+    thirdPartyDistributionChannels: any[];
+  };
+  content: {
+    article: {
+      source: string;
+      title: string;
+      description: string;
     };
   };
-  visibility: {
-    'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC';
-  };
+  lifecycleState: 'PUBLISHED';
+  isReshareDisabledByAuthor: boolean;
 }
 
 export interface FacebookPost {
@@ -76,6 +70,7 @@ export interface FacebookPost {
 export interface Config {
   port: number;
   nodeEnv: string;
+  baseUrl: string;
   teamtailor: {
     webhookSecret: string;
   };
